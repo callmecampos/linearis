@@ -2,6 +2,14 @@
 
 This file provides guidance to LLM agents when working with code in this repository.
 
+## Zion Integration TODOs
+
+See [ZI_TODO.md](./ZI_TODO.md) for planned enhancements to support the `zi trak` CLI integration. These include:
+- `states list` command for workflow state enumeration
+- `--priority` filter for issue queries
+- `--labels` filter for issue queries (API-level)
+- Cursor-based pagination support
+
 ## Project Overview
 
 Linearis is a CLI tool for Linear.app that outputs structured JSON data, designed for LLM agents and users who prefer structured output. Written in TypeScript, built with Node.js using Commander.js for CLI structure and optimized GraphQL queries for Linear API integration.
@@ -23,6 +31,108 @@ Linearis is a CLI tool for Linear.app that outputs structured JSON data, designe
 - Uses `npm` as the package manager
 - `npm install` - Install dependencies
 - `npm update` - Update dependencies
+
+## Local Development & Global Linking
+
+### Initial Setup (First Time)
+
+If another version of linearis is globally installed, uninstall it first:
+
+```bash
+npm uninstall -g linearis
+```
+
+Then set up this fork as the global `linearis` command:
+
+```bash
+cd /Users/fmcampos/projs/programs/atman/forks/linearis
+npm install          # Install dependencies
+npm run build        # Compile TypeScript to dist/
+npm link             # Create global symlink to this directory
+```
+
+Verify it's working:
+
+```bash
+which linearis       # Should show ~/.nvm/.../bin/linearis
+linearis --version   # Should show version from this package.json
+```
+
+### How npm link Works
+
+```
+This repo:
+  src/           <- Edit TypeScript source here
+  dist/          <- Compiled JS (created by npm run build)
+  package.json   <- bin.linearis points to dist/main.js
+
+After npm link:
+  ~/.nvm/.../bin/linearis -> ~/.nvm/.../lib/node_modules/linearis/
+  ~/.nvm/.../lib/node_modules/linearis/ -> /path/to/this/repo
+
+Result: The global `linearis` command runs dist/main.js from THIS directory
+```
+
+### Development Workflow
+
+**Option A: Test locally first, then update global (recommended)**
+
+```bash
+# 1. Make changes to src/ files
+
+# 2. Test WITHOUT affecting global linearis (runs directly from TypeScript)
+npm start -- issues list -l 1
+npm start -- issues read ABC-123
+
+# 3. Run tests
+npm test
+
+# 4. When satisfied, build to update the global command
+npm run build
+
+# 5. Now `linearis` globally uses your changes
+linearis issues list -l 1
+```
+
+**Option B: Build-and-test cycle**
+
+```bash
+# 1. Make changes to src/ files
+
+# 2. Build (updates global immediately since it's symlinked)
+npm run build
+
+# 3. Test via global command
+linearis issues list -l 1
+```
+
+### Testing with API Token
+
+For testing, use a Linear API token. Options:
+
+```bash
+# Option 1: Pass directly
+npm start -- --api-token "lin_api_xxx" issues list -l 1
+
+# Option 2: Environment variable
+export LINEAR_API_TOKEN="lin_api_xxx"
+npm start -- issues list -l 1
+
+# Option 3: Token file
+echo "lin_api_xxx" > ~/.linear_api_token
+npm start -- issues list -l 1
+```
+
+Token can also be found in `~/.zionws/config/trak.json` (orgs/repos mappings).
+
+### Unlinking
+
+To remove this fork from global and restore a published version:
+
+```bash
+npm unlink           # Remove global symlink (run from this directory)
+npm install -g linearis  # Install published version from npm
+```
 
 ## Architecture
 

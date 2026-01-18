@@ -1,6 +1,7 @@
 export interface LinearIssue {
   id: string;
   identifier: string;
+  url: string;
   title: string;
   description?: string;
   branchName?: string;

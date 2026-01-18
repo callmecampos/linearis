@@ -820,6 +820,7 @@ export class GraphQLIssuesService {
     return {
       id: issue.id,
       identifier: issue.identifier,
+      url: issue.url,
       title: issue.title,
       description: issue.description || undefined,
       branchName: issue.branchName || undefined,
